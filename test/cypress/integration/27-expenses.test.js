@@ -136,7 +136,7 @@ describe('New expense flow', () => {
 
       cy.getByDataCy('select-expense-payee').click();
       cy.getByDataCy('collective-type-picker-ORGANIZATION').click();
-      cy.getByDataCy('mini-form-name-field').type('Dummy Name');
+      cy.getByDataCy('mini-form-name-field').type('Dummy Expense Org');
       cy.getByDataCy('mini-form-website-field').type('dummy.com');
       cy.getByDataCy('mini-form-save-button').click();
 
@@ -161,7 +161,7 @@ describe('New expense flow', () => {
       cy.get('input[name="items[1].amount"]').type('{selectall}92.50');
       cy.getByDataCy('expense-summary-btn').click();
 
-      cy.getByDataCy('expense-summary-payee').should('contain', 'Dummy Name');
+      cy.getByDataCy('expense-summary-payee').should('contain', 'Dummy Expense Org');
       cy.getByDataCy('expense-summary-host').should('contain', 'Open Source Collective org');
       cy.getByDataCy('expense-summary-payout-method-data').should('contain', 'make it rain');
       cy.getByDataCy('expense-items-total-amount').should('contain', '$275.50 USD');
