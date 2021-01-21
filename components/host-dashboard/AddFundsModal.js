@@ -121,6 +121,8 @@ const AddFundsModal = ({ host, collective, ...props }) => {
           const hostFee = Math.round(values.amount * (hostFeePercent / 100));
           const platformFee = Math.round(values.amount * (platformFeePercent / 100));
 
+          const canAddHostFee = (collective.legacyId || collective.id) !== (host.legacyId || host.id);
+
           return (
             <Form>
               <ModalBody>
@@ -151,23 +153,25 @@ const AddFundsModal = ({ host, collective, ...props }) => {
                       />
                     )}
                   </StyledInputFormikField>
-                  <StyledInputFormikField
-                    name="hostFeePercent"
-                    htmlFor="addFunds-hostFeePercent"
-                    label={<FormattedMessage id="HostFee" defaultMessage="Host fee" />}
-                    ml={3}
-                  >
-                    {({ form, field }) => (
-                      <StyledInputPercentage
-                        id={field.id}
-                        placeholder={defaultHostFeePercent}
-                        value={field.value}
-                        error={field.error}
-                        onChange={value => form.setFieldValue(field.name, value)}
-                        onBlur={() => form.setFieldTouched(field.name, true)}
-                      />
-                    )}
-                  </StyledInputFormikField>
+                  {canAddHostFee && (
+                    <StyledInputFormikField
+                      name="hostFeePercent"
+                      htmlFor="addFunds-hostFeePercent"
+                      label={<FormattedMessage id="HostFee" defaultMessage="Host fee" />}
+                      ml={3}
+                    >
+                      {({ form, field }) => (
+                        <StyledInputPercentage
+                          id={field.id}
+                          placeholder={defaultHostFeePercent}
+                          value={field.value}
+                          error={field.error}
+                          onChange={value => form.setFieldValue(field.name, value)}
+                          onBlur={() => form.setFieldTouched(field.name, true)}
+                        />
+                      )}
+                    </StyledInputFormikField>
+                  )}
                 </Flex>
                 {LoggedInUser.isRoot() && (
                   <StyledInputFormikField
@@ -296,6 +300,8 @@ AddFundsModal.propTypes = {
     hostFeePercent: PropTypes.number,
   }).isRequired,
   collective: PropTypes.shape({
+    id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+    legacyId: PropTypes.number,
     currency: PropTypes.string,
     hostFeePercent: PropTypes.number,
   }).isRequired,
