@@ -8,12 +8,11 @@ import { ChevronDown } from '@styled-icons/feather/ChevronDown/ChevronDown';
 import { AttachMoney } from '@styled-icons/material/AttachMoney';
 import { Dashboard } from '@styled-icons/material/Dashboard';
 import { Stack } from '@styled-icons/remix-line/Stack';
-import { difference, get, pickBy } from 'lodash';
+import themeGet from '@styled-system/theme-get';
+import { get, pickBy, without } from 'lodash';
 import dynamic from 'next/dynamic';
 import { FormattedMessage } from 'react-intl';
 import styled, { css } from 'styled-components';
-
-import { CollectiveType } from '../../lib/constants/collectives';
 
 import ApplyToHostBtn from '../ApplyToHostBtn';
 import Container from '../Container';
@@ -25,7 +24,6 @@ import StyledHr from '../StyledHr';
 import StyledLink from '../StyledLink';
 import { Span } from '../Text';
 
-import { MainActionBtn } from './index';
 import { NAVBAR_ACTION_TYPE } from './menu';
 
 // Dynamic imports
@@ -107,7 +105,41 @@ const ActionsDropdown = styled(Dropdown)`
     `}
 `;
 
-const StyledActionButton = styled(StyledButton)`
+const StyledActionButton = styled(StyledButton).attrs({ buttonSize: 'tiny' })`
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 16px;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  padding: 5px 10px;
+  text-transform: uppercase;
+  background: white;
+  border-radius: 8px;
+  border: 2px solid white;
+  color: ${themeGet('colors.primary.600')};
+
+  &:focus {
+    border: 2px solid #050505;
+  }
+
+  &:hover {
+    background: linear-gradient(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.9)),
+      linear-gradient(${themeGet('colors.primary.600')}, ${themeGet('colors.primary.600')});
+    border: 2px solid white;
+  }
+
+  &:active {
+    background: linear-gradient(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.9)),
+      linear-gradient(${themeGet('colors.primary.600')}, ${themeGet('colors.primary.600')});
+    color: ${themeGet('colors.primary.600')};
+    border: 2px solid ${themeGet('colors.primary.600')};
+  }
+
+  span {
+    vertical-align: middle;
+    margin-right: 4px;
+  }
+
   @media (max-width: 40em) {
     cursor: none;
     pointer-events: none;
@@ -118,16 +150,6 @@ const StyledChevronDown = styled(ChevronDown)`
   @media (max-width: 40em) {
     display: none;
   }
-`;
-
-const HideableBox = styled(Box)`
-  ${props =>
-    props.isHiddenOnMobile &&
-    css`
-      @media screen and (max-width: 40em) {
-        display: none;
-      }
-    `}
 `;
 
 const ITEM_PADDING = '11px 14px';
@@ -152,92 +174,19 @@ export const getContributeRoute = collective => {
   return { route, params };
 };
 
-const getSecondCTA = (enabledCTAs, hasRequestGrant, mainAction) => {
-  if (!hasRequestGrant) {
-    return enabledCTAs;
-  } else {
-    return difference(enabledCTAs, mainAction);
-  }
-};
-
-const getSecondActionButton = (callToAction, collective) => {
-  if (callToAction === 'hasContact') {
-    return (
-      <Link route="collective-contact" params={{ collectiveSlug: collective.slug }}>
-        <MainActionBtn tabIndex="-1">
-          <Envelope size="14px" />
-          <Span ml={2}>
-            <FormattedMessage id="Contact" defaultMessage="Contact" />
-          </Span>
-        </MainActionBtn>
-      </Link>
-    );
-  } else if (callToAction === 'hasDashboard') {
-    return (
-      <Link route="host.dashboard" params={{ hostCollectiveSlug: collective.slug }}>
-        <MainActionBtn tabIndex="-1">
-          <Dashboard size="14px" />
-          <Span ml={2}>
-            <FormattedMessage id="host.dashboard" defaultMessage="Dashboard" />
-          </Span>
-        </MainActionBtn>
-      </Link>
-    );
-  } else if (callToAction === 'hasContribute') {
-    return (
-      <Link {...getContributeRoute(collective)}>
-        <MainActionBtn tabIndex="-1">
-          <Planet size="14px" />
-          <Span ml={2}>
-            <FormattedMessage id="menu.contributeMoney" defaultMessage="Contribute Money" />
-          </Span>
-        </MainActionBtn>
-      </Link>
-    );
-  } else if (callToAction === 'hasApply') {
-    const plan = collective.plan || {};
-    return (
-      <ApplyToHostBtn
-        hostSlug={collective.slug}
-        buttonRenderer={props => <MainActionBtn {...props} />}
-        hostWithinLimit={!plan.hostedCollectivesLimit || plan.hostedCollectives < plan.hostedCollectivesLimit}
-      />
-    );
-  } else if (callToAction === 'hasSubmitExpense') {
-    return (
-      <Link route="create-expense" params={{ collectiveSlug: collective.slug }}>
-        <MainActionBtn tabIndex="-1">
-          <Receipt size="14px" />
-          <Span ml={2}>
-            <FormattedMessage id="ExpenseForm.Submit" defaultMessage="Submit expense" />
-          </Span>
-        </MainActionBtn>
-      </Link>
-    );
-  } else if (callToAction === 'hasManageSubscriptions') {
-    return (
-      <Link route="recurring-contributions" params={{ slug: collective.slug }}>
-        <MainActionBtn tabIndex="-1">
-          <Stack size="14px" />
-          <Span ml={2}>
-            <FormattedMessage id="menu.subscriptions" defaultMessage="Manage Contributions" />
-          </Span>
-        </MainActionBtn>
-      </Link>
-    );
-  } else {
-    return null;
-  }
-};
-
-const CollectiveNavbarActionsMenu = ({ collective, callsToAction, hiddenActionForNonMobile, mainAction }) => {
-  const hasRequestGrant =
-    [CollectiveType.FUND].includes(collective.type) || collective.settings?.fundingRequest === true;
+const CollectiveNavbarActionsMenu = ({
+  collective,
+  callsToAction,
+  hiddenActionForNonMobile,
+  mainAction,
+  getActions,
+  isAdmin,
+}) => {
   const enabledCTAs = Object.keys(pickBy(callsToAction, Boolean));
-  const isEmpty = !hasRequestGrant && enabledCTAs.length < 1;
-  const hasOnlyTwoCTAs =
-    (enabledCTAs.length === 1 && hasRequestGrant) || (enabledCTAs.length === 2 && !hasRequestGrant);
-  const secondAction = getSecondCTA(enabledCTAs, hasRequestGrant, mainAction);
+  const isEmpty = enabledCTAs.length < 1;
+  const hasOnlyTwoCTAs = enabledCTAs.length === 2;
+  const secondAction = without(enabledCTAs, mainAction);
+  const getSecondActionButton = getActions(collective, isAdmin, secondAction);
   const hasOnlyOneHiddenCTA = enabledCTAs.length === 1 && hiddenActionForNonMobile === enabledCTAs[0];
   const hostedCollectivesLimit = get(collective, 'plan.hostedCollectivesLimit');
   const hostWithinLimit = hostedCollectivesLimit
@@ -260,9 +209,7 @@ const CollectiveNavbarActionsMenu = ({ collective, callsToAction, hiddenActionFo
       borderTop={['1px solid #e1e1e1', 'none']}
     >
       <Box px={1}>
-        <HideableBox isHiddenOnMobile={hasOnlyTwoCTAs}>
-          {getSecondActionButton(secondAction.toString(), collective)}
-        </HideableBox>
+        {hasOnlyTwoCTAs && <Box display={['none', 'block']}>{getSecondActionButton?.component}</Box>}
         <ActionsDropdown trigger="click" isHiddenOnNonMobile={hasOnlyTwoCTAs}>
           {({ triggerProps, dropdownProps }) => (
             <React.Fragment>
@@ -270,22 +217,8 @@ const CollectiveNavbarActionsMenu = ({ collective, callsToAction, hiddenActionFo
                 <Box display={['block', 'none']} width={'32px'} ml={2}>
                   <StyledHr borderStyle="solid" borderColor="primary.600" />
                 </Box>
-                <StyledActionButton
-                  type="button"
-                  isBorderless
-                  buttonSize="tiny"
-                  buttonStyle="secondary"
-                  my={2}
-                  fontSize="14px"
-                  fontWeight="500"
-                  textTransform="uppercase"
-                  color="primary.600"
-                  letterSpacing="60%"
-                  whiteSpace="nowrap"
-                  data-cy="collective-navbar-actions-btn"
-                  {...triggerProps}
-                >
-                  <Span css={{ verticalAlign: 'middle', marginRight: '4px' }}>
+                <StyledActionButton data-cy="collective-navbar-actions-btn" my={2} {...triggerProps}>
+                  <Span>
                     <FormattedMessage id="CollectivePage.NavBar.ActionMenu.Actions" defaultMessage="Actions" />
                   </Span>
                   <StyledChevronDown size="14px" />
@@ -321,7 +254,7 @@ const CollectiveNavbarActionsMenu = ({ collective, callsToAction, hiddenActionFo
                         </StyledLink>
                       </MenuItem>
                     )}
-                    {hasRequestGrant && (
+                    {callsToAction.hasRequestGrant && (
                       <MenuItem py={1}>
                         <StyledLink
                           as={Link}
@@ -462,6 +395,8 @@ CollectiveNavbarActionsMenu.propTypes = {
   }).isRequired,
   hiddenActionForNonMobile: PropTypes.oneOf(Object.values(NAVBAR_ACTION_TYPE)),
   mainAction: PropTypes.string,
+  getActions: PropTypes.function,
+  isAdmin: PropTypes.bool,
 };
 
 CollectiveNavbarActionsMenu.defaultProps = {
