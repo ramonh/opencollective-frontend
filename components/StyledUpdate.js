@@ -181,7 +181,7 @@ class StyledUpdate extends Component {
           </Box>
         )}
         <StyledTag fontSize="10px" py={1}>
-          <FormattedMessage id="Member.Role.ADMIN" defaultMessage="Admin" />
+          <FormattedMessage id="ADMIN" defaultMessage="ADMIN" />
         </StyledTag>
         {editable && (
           <React.Fragment>

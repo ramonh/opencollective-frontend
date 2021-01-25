@@ -55,6 +55,7 @@
   "AddFundsToCollectiveModal.Title": "Добавить средства Коллективу:",
   "AddPrepaidBudget.Success": "Prepaid budget added successfully",
   "addPrepaidBudget.title": "Add Prepaid Budget to {collective}",
+  "ADMIN": "ADMIN",
   "administrators": "Администраторы",
   "Admins": "Администрация",
   "AllExpenses": "Все расходы",

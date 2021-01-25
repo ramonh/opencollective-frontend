@@ -55,6 +55,7 @@
   "AddFundsToCollectiveModal.Title": "向社群添加资金：",
   "AddPrepaidBudget.Success": "预付预算已成功添加",
   "addPrepaidBudget.title": "添加预付预算到 {collective}",
+  "ADMIN": "ADMIN",
   "administrators": "管理员",
   "Admins": "管理员",
   "AllExpenses": "所有支出",
